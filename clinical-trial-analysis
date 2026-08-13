@@ -1,0 +1,599 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyPZdBZsxmY0mMRs0dRRSfT5",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/camiloch28/clinical-trial-analysis/blob/main/clinical-trial-analysis\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "#Revisar si existe paradoja de Simpson"
+      ],
+      "metadata": {
+        "id": "qycWBH3mEFI2"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# ¿Qué tratamiento es más efectivo para la recuperación de los pacientes, el tratamiento A o el B?\n",
+        "\n",
+        "import pandas as pd\n",
+        "df = pd.read_csv('/content/clinical_trial.csv')\n",
+        "\n",
+        "df.head()"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 206
+        },
+        "id": "t3RAZKRQEKna",
+        "outputId": "0ecf4e0e-e850-4cc1-8cca-db7ea3016ed3"
+      },
+      "execution_count": 1,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "   paciente_id              nombre sexo tratamiento  recuperado\n",
+              "0            1         Paula López    F           B           1\n",
+              "1            2       Sofía Sánchez    F           A           1\n",
+              "2            3    Daniela Martínez    F           A           1\n",
+              "3            4  Valentina Martínez    F           B           1\n",
+              "4            5     Valentina Pérez    F           A           1"
+            ],
+            "text/html": [
+              "\n",
+              "  <div id=\"df-199e7cf2-e081-4993-abd4-c81b2d9e611d\" class=\"colab-df-container\">\n",
+              "    <div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>paciente_id</th>\n",
+              "      <th>nombre</th>\n",
+              "      <th>sexo</th>\n",
+              "      <th>tratamiento</th>\n",
+              "      <th>recuperado</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>1</td>\n",
+              "      <td>Paula López</td>\n",
+              "      <td>F</td>\n",
+              "      <td>B</td>\n",
+              "      <td>1</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>2</td>\n",
+              "      <td>Sofía Sánchez</td>\n",
+              "      <td>F</td>\n",
+              "      <td>A</td>\n",
+              "      <td>1</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>3</td>\n",
+              "      <td>Daniela Martínez</td>\n",
+              "      <td>F</td>\n",
+              "      <td>A</td>\n",
+              "      <td>1</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>4</td>\n",
+              "      <td>Valentina Martínez</td>\n",
+              "      <td>F</td>\n",
+              "      <td>B</td>\n",
+              "      <td>1</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>5</td>\n",
+              "      <td>Valentina Pérez</td>\n",
+              "      <td>F</td>\n",
+              "      <td>A</td>\n",
+              "      <td>1</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>\n",
+              "    <div class=\"colab-df-buttons\">\n",
+              "\n",
+              "  <div class=\"colab-df-container\">\n",
+              "    <button class=\"colab-df-convert\" onclick=\"convertToInteractive('df-199e7cf2-e081-4993-abd4-c81b2d9e611d')\"\n",
+              "            title=\"Convert this dataframe to an interactive table.\"\n",
+              "            style=\"display:none;\">\n",
+              "\n",
+              "  <svg xmlns=\"http://www.w3.org/2000/svg\" height=\"24px\" viewBox=\"0 -960 960 960\">\n",
+              "    <path d=\"M120-120v-720h720v720H120Zm60-500h600v-160H180v160Zm220 220h160v-160H400v160Zm0 220h160v-160H400v160ZM180-400h160v-160H180v160Zm440 0h160v-160H620v160ZM180-180h160v-160H180v160Zm440 0h160v-160H620v160Z\"/>\n",
+              "  </svg>\n",
+              "    </button>\n",
+              "\n",
+              "  <style>\n",
+              "    .colab-df-container {\n",
+              "      display:flex;\n",
+              "      gap: 12px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert {\n",
+              "      background-color: #E8F0FE;\n",
+              "      border: none;\n",
+              "      border-radius: 50%;\n",
+              "      cursor: pointer;\n",
+              "      display: none;\n",
+              "      fill: #1967D2;\n",
+              "      height: 32px;\n",
+              "      padding: 0 0 0 0;\n",
+              "      width: 32px;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-convert:hover {\n",
+              "      background-color: #E2EBFA;\n",
+              "      box-shadow: 0px 1px 2px rgba(60, 64, 67, 0.3), 0px 1px 3px 1px rgba(60, 64, 67, 0.15);\n",
+              "      fill: #174EA6;\n",
+              "    }\n",
+              "\n",
+              "    .colab-df-buttons div {\n",
+              "      margin-bottom: 4px;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert {\n",
+              "      background-color: #3B4455;\n",
+              "      fill: #D2E3FC;\n",
+              "    }\n",
+              "\n",
+              "    [theme=dark] .colab-df-convert:hover {\n",
+              "      background-color: #434B5C;\n",
+              "      box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15);\n",
+              "      filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));\n",
+              "      fill: #FFFFFF;\n",
+              "    }\n",
+              "  </style>\n",
+              "\n",
+              "    <script>\n",
+              "      const buttonEl =\n",
+              "        document.querySelector('#df-199e7cf2-e081-4993-abd4-c81b2d9e611d button.colab-df-convert');\n",
+              "      buttonEl.style.display =\n",
+              "        google.colab.kernel.accessAllowed ? 'block' : 'none';\n",
+              "\n",
+              "      async function convertToInteractive(key) {\n",
+              "        const element = document.querySelector('#df-199e7cf2-e081-4993-abd4-c81b2d9e611d');\n",
+              "        const dataTable =\n",
+              "          await google.colab.kernel.invokeFunction('convertToInteractive',\n",
+              "                                                    [key], {});\n",
+              "        if (!dataTable) return;\n",
+              "\n",
+              "        const docLinkHtml = 'Like what you see? Visit the ' +\n",
+              "          '<a target=\"_blank\" href=https://colab.research.google.com/notebooks/data_table.ipynb>data table notebook</a>'\n",
+              "          + ' to learn more about interactive tables.';\n",
+              "        element.innerHTML = '';\n",
+              "        dataTable['output_type'] = 'display_data';\n",
+              "        await google.colab.output.renderOutput(dataTable, element);\n",
+              "        const docLink = document.createElement('div');\n",
+              "        docLink.innerHTML = docLinkHtml;\n",
+              "        element.appendChild(docLink);\n",
+              "      }\n",
+              "    </script>\n",
+              "  </div>\n",
+              "\n",
+              "\n",
+              "    </div>\n",
+              "  </div>\n"
+            ],
+            "application/vnd.google.colaboratory.intrinsic+json": {
+              "type": "dataframe",
+              "variable_name": "df",
+              "summary": "{\n  \"name\": \"df\",\n  \"rows\": 500,\n  \"fields\": [\n    {\n      \"column\": \"paciente_id\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 144,\n        \"min\": 1,\n        \"max\": 500,\n        \"num_unique_values\": 500,\n        \"samples\": [\n          362,\n          74,\n          375\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"nombre\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 184,\n        \"samples\": [\n          \"Paula S\\u00e1nchez\",\n          \"Laura P\\u00e9rez\",\n          \"Jorge Ram\\u00edrez\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"sexo\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 2,\n        \"samples\": [\n          \"M\",\n          \"F\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"tratamiento\",\n      \"properties\": {\n        \"dtype\": \"category\",\n        \"num_unique_values\": 2,\n        \"samples\": [\n          \"A\",\n          \"B\"\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    },\n    {\n      \"column\": \"recuperado\",\n      \"properties\": {\n        \"dtype\": \"number\",\n        \"std\": 0,\n        \"min\": 0,\n        \"max\": 1,\n        \"num_unique_values\": 2,\n        \"samples\": [\n          0,\n          1\n        ],\n        \"semantic_type\": \"\",\n        \"description\": \"\"\n      }\n    }\n  ]\n}"
+            }
+          },
+          "metadata": {},
+          "execution_count": 1
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Calculamos la tasa promedio de recuperación para cada tratamiento y vemos el porcentaje de pacientes recuperados:\n",
+        "df.groupby(\"tratamiento\")[\"recuperado\"].mean()"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 178
+        },
+        "id": "tOt3JKHTEZkG",
+        "outputId": "e8842997-ac0e-449d-fb48-30d3a0444c9b"
+      },
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "tratamiento\n",
+              "A    0.838843\n",
+              "B    0.810078\n",
+              "Name: recuperado, dtype: float64"
+            ],
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>recuperado</th>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>tratamiento</th>\n",
+              "      <th></th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>A</th>\n",
+              "      <td>0.838843</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>B</th>\n",
+              "      <td>0.810078</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div><br><label><b>dtype:</b> float64</label>"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 2
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Obtenemos que:\n",
+        "\n",
+        "El tratamiento A tiene aproximadamente 83% de recuperados.\n",
+        "Mientras que B tiene aproximadamente 81%.\n",
+        "A primera vista, la conclusión sería:\n",
+        "\n",
+        "“El tratamiento A es más efectivo que el tratamiento B, así que debemos priorizarlo.”"
+      ],
+      "metadata": {
+        "id": "GgMtnagqEjiD"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Repetimos el análisis, pero ahora segmentando:\n",
+        "\n",
+        "df.groupby([\"sexo\",\"tratamiento\"])[\"recuperado\"].mean()\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 241
+        },
+        "id": "nwdOsxTgEoBe",
+        "outputId": "360fad48-8300-4b56-c361-7ac237ff29c3"
+      },
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "sexo  tratamiento\n",
+              "F     A              0.935294\n",
+              "      B              0.987500\n",
+              "M     A              0.611111\n",
+              "      B              0.730337\n",
+              "Name: recuperado, dtype: float64"
+            ],
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th>recuperado</th>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>sexo</th>\n",
+              "      <th>tratamiento</th>\n",
+              "      <th></th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th rowspan=\"2\" valign=\"top\">F</th>\n",
+              "      <th>A</th>\n",
+              "      <td>0.935294</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>B</th>\n",
+              "      <td>0.987500</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th rowspan=\"2\" valign=\"top\">M</th>\n",
+              "      <th>A</th>\n",
+              "      <td>0.611111</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>B</th>\n",
+              "      <td>0.730337</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div><br><label><b>dtype:</b> float64</label>"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 3
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Al ejecutar, vemos que:\n",
+        "\n",
+        "En pacientes mujeres,\n",
+        "\n",
+        "El tratamiento A tiene un 93% de recuperación.\n",
+        "Mientras que el tratamiento B alcanza un 98%.\n",
+        "En pacientes hombres,\n",
+        "\n",
+        "El tratamiento A muestra un 61% de recuperación.\n",
+        "Y el tratamiento B llega al 73%.\n",
+        "¿Qué acaba de pasar?\n",
+        "\n",
+        "En el resultado global, parecía que A era mejor que B.\n",
+        "Pero, al segmentar en mujeres y hombres, el tratamiento B es más efectivo en todos los subgrupos.\n",
+        "Esto es exactamente la paradoja de Simpson."
+      ],
+      "metadata": {
+        "id": "LYrLyYIFE0Lc"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Adicionalmente, podemos revisar las proporciones de los grupos para entender por qué ocurre la paradoja.\n",
+        "#Calculando el porcentaje de hombres y mujeres, vemos un balance entre los grupos.\n",
+        "df[\"sexo\"].value_counts(normalize=True)\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 178
+        },
+        "id": "Sv3UjBycE3oi",
+        "outputId": "73572bab-ab1d-435f-c05e-a98b757c194b"
+      },
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "sexo\n",
+              "F    0.5\n",
+              "M    0.5\n",
+              "Name: proportion, dtype: float64"
+            ],
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>proportion</th>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>sexo</th>\n",
+              "      <th></th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>F</th>\n",
+              "      <td>0.5</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>M</th>\n",
+              "      <td>0.5</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div><br><label><b>dtype:</b> float64</label>"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 4
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Sin embargo, al revisar cómo se distribuyen los pacientes por sexo en cada tratamiento, observamos grupos claramente desbalanceados.\n",
+        "df.groupby(\"tratamiento\")[\"sexo\"].value_counts(normalize=True)\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 241
+        },
+        "id": "17JNzqylFE8L",
+        "outputId": "699fa209-91cb-4d4b-de67-deebf52371a7"
+      },
+      "execution_count": 5,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "tratamiento  sexo\n",
+              "A            F       0.702479\n",
+              "             M       0.297521\n",
+              "B            M       0.689922\n",
+              "             F       0.310078\n",
+              "Name: proportion, dtype: float64"
+            ],
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th>proportion</th>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>tratamiento</th>\n",
+              "      <th>sexo</th>\n",
+              "      <th></th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th rowspan=\"2\" valign=\"top\">A</th>\n",
+              "      <th>F</th>\n",
+              "      <td>0.702479</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>M</th>\n",
+              "      <td>0.297521</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th rowspan=\"2\" valign=\"top\">B</th>\n",
+              "      <th>M</th>\n",
+              "      <td>0.689922</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>F</th>\n",
+              "      <td>0.310078</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div><br><label><b>dtype:</b> float64</label>"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 5
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "En el tratamiento A, el 70% es representado por mujeres, mientras que en B ocurre lo contrario y la mayoría son hombres.\n",
+        "\n",
+        "Este desbalance explica el resultado engañoso y es la clave de la paradoja de Simpson.\n",
+        "\n",
+        "La conclusión inicial era engañosa, pero al segmentar descubrimos que el tratamiento B es consistentemente más efectivo.\n",
+        "\n",
+        "Como recomendación final: nunca tomes decisiones críticas basándote solo en resultados generales, porque la segmentación puede cambiar completamente la historia que cuentan los datos."
+      ],
+      "metadata": {
+        "id": "ubOHgq_hFSXt"
+      }
+    }
+  ]
+}
